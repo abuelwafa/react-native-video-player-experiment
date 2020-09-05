@@ -8,11 +8,15 @@ import {
     Button,
     Platform,
     Text,
+    Animated,
 } from 'react-native';
 import Video, { VideoProperties } from 'react-native-video';
 import Orientation from 'react-native-orientation-locker';
 import Modal from 'react-native-modal';
+import { State, PanGestureHandler } from 'react-native-gesture-handler';
+
 const { width } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
     container: { backgroundColor: '#bbb' },
     fullscreenVideo: {
@@ -22,6 +26,24 @@ const styles = StyleSheet.create({
         width,
         height: (width * 9) / 16,
         backgroundColor: 'black',
+    },
+    seekbarContainer: {
+        padding: 15,
+        backgroundColor: '#dedede',
+        justifyContent: 'center',
+    },
+    seekbar: {
+        height: 3,
+        backgroundColor: '#333',
+        // position: 'absolute'
+    },
+    seekHandler: {
+        borderRadius: 20,
+        width: 20,
+        height: 20,
+        backgroundColor: 'red',
+        position: 'absolute',
+        left: 5,
     },
 });
 
@@ -97,6 +119,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const { currentlyPlaying, setCurrentlyPlaying } = useContext(VideoPlayerContext);
     const isPlaying = currentlyPlaying === src;
 
+    const seekPanOffset = useRef(new Animated.Value(0)).current;
+    const seekBarWidth = useRef(new Animated.Value(100)).current;
+
     const commonVideoProps: VideoProperties = {
         repeat,
         paused: !isPlaying,
@@ -120,6 +145,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         resizeMode: 'contain',
         ref: inlineVideoRef,
     };
+
     const fullScreenVideoProps: VideoProps = {
         ...commonVideoProps,
         key: src,
@@ -133,6 +159,31 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             {!fullScreen && (
                 <>
                     <Video {...inlineVideoProps} />
+                    <View style={styles.seekbarContainer}>
+                        <View
+                            style={styles.seekbar}
+                            onLayout={Animated.event([
+                                { nativeEvent: { layout: { width: seekBarWidth } } },
+                            ])}
+                        />
+                        <PanGestureHandler
+                            onGestureEvent={Animated.event(
+                                [{ nativeEvent: { x: seekPanOffset } }],
+                                { useNativeDriver: true },
+                            )}
+                            onHandlerStateChange={({ nativeEvent }) => {
+                                if (nativeEvent.state === State.END) {
+                                    console.log(nativeEvent.translationX);
+                                }
+                            }}>
+                            <Animated.View
+                                style={[
+                                    styles.seekHandler,
+                                    { transform: [{ translateX: seekPanOffset }] },
+                                ]}
+                            />
+                        </PanGestureHandler>
+                    </View>
                     <View>
                         <View>
                             <Text>
@@ -175,7 +226,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                             }}
                         />
                         <Button title="Mute" onPress={() => setMuted((s) => !s)} />
-                        <Button title="Stop" onPress={() => setMuted((s) => !s)} />
+                        <Button title="Stop" onPress={() => {}} />
                         <Button
                             title="ToggleFullScreen"
                             onPress={() => {
