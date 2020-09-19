@@ -3,19 +3,25 @@ import {
     View,
     StyleSheet,
     Dimensions,
-    TouchableWithoutFeedback,
+    TouchableOpacity,
     StatusBar,
     Button,
     Platform,
     Text,
-    Animated,
+    TouchableWithoutFeedback,
 } from 'react-native';
 import Video, { VideoProperties } from 'react-native-video';
 import Orientation from 'react-native-orientation-locker';
 import Modal from 'react-native-modal';
-import { State, PanGestureHandler } from 'react-native-gesture-handler';
+
+import { SoundOnIcon } from './icons/sound-on-icon';
+import { SoundMutedIcon } from './icons/sound-muted-icon';
+import { EnterFullscreenIcon } from './icons/enter-fullscreen-icon';
+import { ExitFullscreenIcon } from './icons/exit-fullscreen-icon';
 
 const { width } = Dimensions.get('window');
+
+const iconProps = { width: 25, height: 25, fill: '#fff' };
 
 const styles = StyleSheet.create({
     container: { backgroundColor: '#bbb' },
@@ -45,6 +51,11 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 5,
     },
+    iconButton: {
+        padding: 6,
+        backgroundColor: 'rgba(128, 128, 128, 0.4)',
+        position: 'absolute',
+    },
 });
 
 const formatSecondsTime = (duration: number): string => {
@@ -72,8 +83,8 @@ interface VideoPlayerProps extends VideoProperties {
     skipInterval?: number;
     showSkipButtons?: boolean;
     showPlaylistControls?: boolean;
-    onNextVideo: () => void;
-    onPreviousVideo: () => void;
+    onNextVideo?: () => void;
+    onPreviousVideo?: () => void;
 }
 
 // change to controlled component api
@@ -102,8 +113,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     showSkipButtons = false,
     skipInterval = 10,
     repeat = false,
-    onPreviousVideo,
-    onNextVideo,
+    onPreviousVideo = () => {},
+    onNextVideo = () => {},
     ...rest
 }) => {
     const inlineVideoRef = useRef<Video>(null);
@@ -115,14 +126,35 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const [volume, setVolume] = useState(1);
     const [muted, setMuted] = useState(false);
     const [seekableDuration, setSeekableDuration] = useState(0);
+    const [showControls, setShowControls] = useState(false);
 
     const { currentlyPlaying, setCurrentlyPlaying } = useContext(VideoPlayerContext);
     const isPlaying = currentlyPlaying === src;
 
-    const seekPanOffset = useRef(new Animated.Value(0)).current;
-    const seekBarWidth = useRef(new Animated.Value(100)).current;
+    let showControlsTimeoutId: React.MutableRefObject<NodeJS.Timeout | null> = useRef(null);
+    const resetShowControlsTimeout = () => {
+        console.log('resetShowControlsTimeout called', { id: showControlsTimeoutId.current });
+
+        if (showControlsTimeoutId.current) {
+            clearTimeout(showControlsTimeoutId.current);
+        }
+        setShowControls(true);
+        showControlsTimeoutId.current = setTimeout(() => setShowControls(false), 3000);
+    };
+
+    // clear timeout on showControlsTimeout on unmount
+    useEffect(
+        () => () => {
+            showControlsTimeoutId.current && clearTimeout(showControlsTimeoutId.current);
+        },
+        [showControlsTimeoutId.current],
+    );
+
+    // const seekPanOffset = useRef(new Animated.Value(0)).current;
+    // const seekBarWidth = useRef(new Animated.Value(100)).current;
 
     const commonVideoProps: VideoProperties = {
+        controls: true,
         repeat,
         paused: !isPlaying,
         fullscreenAutorotate: true,
@@ -141,7 +173,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
     const inlineVideoProps: VideoProps = {
         ...commonVideoProps,
         key: src,
-        style: styles.video,
+        style: [styles.video, rest.style],
         resizeMode: 'contain',
         ref: inlineVideoRef,
     };
@@ -154,36 +186,64 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         style: styles.fullscreenVideo,
     };
 
+    const isLoading = isPlaying && playableDuration - position <= 0;
+
     return (
         <View style={styles.container}>
             {!fullScreen && (
                 <>
-                    <Video {...inlineVideoProps} />
-                    <View style={styles.seekbarContainer}>
-                        <View
-                            style={styles.seekbar}
-                            onLayout={Animated.event([
-                                { nativeEvent: { layout: { width: seekBarWidth } } },
-                            ])}
-                        />
-                        <PanGestureHandler
-                            onGestureEvent={Animated.event(
-                                [{ nativeEvent: { x: seekPanOffset } }],
-                                { useNativeDriver: true },
-                            )}
-                            onHandlerStateChange={({ nativeEvent }) => {
-                                if (nativeEvent.state === State.END) {
-                                    console.log(nativeEvent.translationX);
-                                }
-                            }}>
-                            <Animated.View
-                                style={[
-                                    styles.seekHandler,
-                                    { transform: [{ translateX: seekPanOffset }] },
-                                ]}
-                            />
-                        </PanGestureHandler>
+                    <View>
+                        <TouchableWithoutFeedback onPress={resetShowControlsTimeout}>
+                            <Video {...inlineVideoProps} />
+                        </TouchableWithoutFeedback>
+
+                        {isLoading && (
+                            <View style={styles.iconButton}>
+                                <EnterFullscreenIcon {...iconProps} />
+                            </View>
+                        )}
+
+                        {showControls && (
+                            <>
+                                {/* enter fullscreen button */}
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        resetShowControlsTimeout();
+                                        if (Platform.OS === 'ios') {
+                                            videoRef.current.presentFullscreenPlayer();
+                                        } else {
+                                            setFullScreen(true);
+                                            Orientation.lockToLandscape();
+                                        }
+                                    }}
+                                    style={[styles.iconButton, { top: 10, right: 10 }]}>
+                                    <EnterFullscreenIcon {...iconProps} />
+                                </TouchableOpacity>
+
+                                {/* toggle mute button */}
+                                {muted ? (
+                                    <TouchableOpacity
+                                        style={[styles.iconButton, { top: 57, right: 10 }]}
+                                        onPress={() => {
+                                            resetShowControlsTimeout();
+                                            setMuted(false);
+                                        }}>
+                                        <SoundMutedIcon {...iconProps} />
+                                    </TouchableOpacity>
+                                ) : (
+                                    <TouchableOpacity
+                                        style={[styles.iconButton, { top: 57, right: 10 }]}
+                                        onPress={() => {
+                                            resetShowControlsTimeout();
+                                            setMuted(true);
+                                        }}>
+                                        <SoundOnIcon {...iconProps} />
+                                    </TouchableOpacity>
+                                )}
+                            </>
+                        )}
                     </View>
+
                     <View>
                         <View>
                             <Text>
@@ -191,9 +251,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                             </Text>
                             <Text>{playableDuration}</Text>
                             <Text>{seekableDuration}</Text>
-                            <Text>
-                                {isPlaying && playableDuration - position <= 0 ? 'Loading' : '---'}
-                            </Text>
+                            <Text>{isLoading ? 'Loading' : '---'}</Text>
                         </View>
                         <Button
                             title="Play/Pause"
@@ -225,23 +283,11 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                                 }
                             }}
                         />
-                        <Button title="Mute" onPress={() => setMuted((s) => !s)} />
-                        <Button title="Stop" onPress={() => {}} />
-                        <Button
-                            title="ToggleFullScreen"
-                            onPress={() => {
-                                // if (Platform.OS === 'ios') {
-                                //     videoRef.current.presentFullscreenPlayer();
-                                // } else {
-                                setFullScreen(true);
-                                Orientation.lockToLandscape();
-                                // }
-                            }}
-                        />
                     </View>
                 </>
             )}
-            {Platform.OS !== 'android' && (
+
+            {Platform.OS === 'android' && (
                 <Modal
                     style={{ margin: 0, backgroundColor: 'black' }}
                     coverScreen={true}
@@ -250,13 +296,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     statusBarTranslucent={true}
                     transparent={true}>
                     <StatusBar hidden={fullScreen} />
-                    <TouchableWithoutFeedback
+
+                    <Video {...fullScreenVideoProps} />
+
+                    <TouchableOpacity
                         onPress={() => {
                             setFullScreen(false);
-                            Orientation.unlockAllOrientations();
-                        }}>
-                        <Video {...fullScreenVideoProps} />
-                    </TouchableWithoutFeedback>
+                            Orientation.lockToPortrait();
+                        }}
+                        style={[styles.iconButton, { top: 10, right: 10 }]}>
+                        <ExitFullscreenIcon {...iconProps} />
+                    </TouchableOpacity>
                 </Modal>
             )}
         </View>
