@@ -11,25 +11,76 @@ const App = () => {
             <StatusBar barStyle="dark-content" />
             <SafeAreaView>
                 <ScrollView>
-                    <Text>hello react native</Text>
+                    <Text>
+                        Elit asperiores repellat beatae ducimus labore numquam, harum, nihil Harum
+                        facilis sed ipsam recusandae provident. Autem ab ab tempore dolorum sapiente
+                        Necessitatibus pariatur facere eligendi consectetur impedit. Ea fugit vitae!
+                    </Text>
+                    <Text>
+                        Elit asperiores repellat beatae ducimus labore numquam, harum, nihil Harum
+                        facilis sed ipsam recusandae provident. Autem ab ab tempore dolorum sapiente
+                        Necessitatibus pariatur facere eligendi consectetur impedit. Ea fugit vitae!
+                    </Text>
+                    <Text>
+                        Elit asperiores repellat beatae ducimus labore numquam, harum, nihil Harum
+                        facilis sed ipsam recusandae provident. Autem ab ab tempore dolorum sapiente
+                        Necessitatibus pariatur facere eligendi consectetur impedit. Ea fugit vitae!
+                    </Text>
                     <PlayerProvider>
                         <VideoPlayer
                             src="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4"
+                            poster="https://via.placeholder.com/440x360/EEAACC/FFFFFF"
                             repeat={true}
                             style={{ marginBottom: 20 }}
                         />
 
-                        <VideoPlayer
-                            src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"
-                            repeat={true}
-                            style={{ marginBottom: 20 }}
-                        />
-
-                        <VideoPlayer
-                            src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"
-                            repeat={true}
-                            style={{ marginBottom: 20 }}
-                        />
+                        <Text>
+                            Elit asperiores repellat beatae ducimus labore numquam, harum, nihil
+                            Harum facilis sed ipsam recusandae provident. Autem ab ab tempore
+                            dolorum sapiente Necessitatibus pariatur facere eligendi consectetur
+                            impedit. Ea fugit vitae!
+                        </Text>
+                        <Text>
+                            Elit asperiores repellat beatae ducimus labore numquam, harum, nihil
+                            Harum facilis sed ipsam recusandae provident. Autem ab ab tempore
+                            dolorum sapiente Necessitatibus pariatur facere eligendi consectetur
+                            impedit. Ea fugit vitae!
+                        </Text>
+                        <Text>
+                            Elit asperiores repellat beatae ducimus labore numquam, harum, nihil
+                            Harum facilis sed ipsam recusandae provident. Autem ab ab tempore
+                            dolorum sapiente Necessitatibus pariatur facere eligendi consectetur
+                            impedit. Ea fugit vitae!
+                        </Text>
+                        <Text>
+                            Elit asperiores repellat beatae ducimus labore numquam, harum, nihil
+                            Harum facilis sed ipsam recusandae provident. Autem ab ab tempore
+                            dolorum sapiente Necessitatibus pariatur facere eligendi consectetur
+                            impedit. Ea fugit vitae!
+                        </Text>
+                        <Text>
+                            Elit asperiores repellat beatae ducimus labore numquam, harum, nihil
+                            Harum facilis sed ipsam recusandae provident. Autem ab ab tempore
+                            dolorum sapiente Necessitatibus pariatur facere eligendi consectetur
+                            impedit. Ea fugit vitae!
+                        </Text>
+                        <Text>
+                            Elit asperiores repellat beatae ducimus labore numquam, harum, nihil
+                            Harum facilis sed ipsam recusandae provident. Autem ab ab tempore
+                            dolorum sapiente Necessitatibus pariatur facere eligendi consectetur
+                            impedit. Ea fugit vitae!
+                        </Text>
+                        {/* <VideoPlayer */}
+                        {/*     src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" */}
+                        {/*     repeat={true} */}
+                        {/*     style={{ marginBottom: 20 }} */}
+                        {/* /> */}
+                        {/*  */}
+                        {/* <VideoPlayer */}
+                        {/*     src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4" */}
+                        {/*     repeat={true} */}
+                        {/*     style={{ marginBottom: 20 }} */}
+                        {/* /> */}
                     </PlayerProvider>
                 </ScrollView>
             </SafeAreaView>
